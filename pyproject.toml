@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "ember"
+version = "0.1.0"
+description = "ML for Core Electron Heating due to Wave Modulation in the Solar Wind"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "cdflib",
+    "matplotlib",
+    "numpy",
+    "scipy",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+    "pytest",
+]
+
+[project.scripts]
+ember-download = "scripts.download_data:main"
+ember-spectrograms-dvac = "scripts.create_spectrograms_dvac:main"
+ember-spectrograms-vac = "scripts.create_spectrograms_vac:main"
