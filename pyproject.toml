@@ -16,7 +16,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = [
+dev = [
+    "pre-commit",
     "pytest",
 ]
 

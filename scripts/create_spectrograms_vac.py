@@ -95,15 +95,24 @@ def main():
     )
     parser.add_argument("cdf_file", help="Path to the VAC CDF file")
     parser.add_argument(
-        "--output", "-o", default="output/vac", help="Output directory (default: output/vac)"
+        "--output",
+        "-o",
+        default="output/vac",
+        help="Output directory (default: output/vac)",
     )
     parser.add_argument(
-        "--probes", "-p", default="12", choices=["12", "34"],
-        help="Antenna pair to use (default: 12)"
+        "--probes",
+        "-p",
+        default="12",
+        choices=["12", "34"],
+        help="Antenna pair to use (default: 12)",
     )
     parser.add_argument(
-        "--format", "-f", default="both", choices=["png", "npz", "both"],
-        help="Output format (default: both)"
+        "--format",
+        "-f",
+        default="both",
+        choices=["png", "npz", "both"],
+        help="Output format (default: both)",
     )
     args = parser.parse_args()
 

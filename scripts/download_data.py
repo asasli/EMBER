@@ -83,37 +83,47 @@ def main():
         epilog=__doc__,
     )
     parser.add_argument(
-        "--kind", required=True, choices=["dvac", "vac"],
+        "--kind",
+        required=True,
+        choices=["dvac", "vac"],
         help="Data product type",
     )
     parser.add_argument(
-        "--output", "-o", default="data",
+        "--output",
+        "-o",
+        default="data",
         help="Output directory (default: data)",
     )
 
     # Single file options
     single = parser.add_argument_group("single file")
     single.add_argument(
-        "--date", type=str,
+        "--date",
+        type=str,
         help="Date to download (YYYY-MM-DD)",
     )
     single.add_argument(
-        "--hour", type=str, choices=HOURS,
+        "--hour",
+        type=str,
+        choices=HOURS,
         help="6-hour block to download (00, 06, 12, or 18)",
     )
     single.add_argument(
-        "--all-hours", action="store_true",
+        "--all-hours",
+        action="store_true",
         help="Download all 6-hour blocks for the given date",
     )
 
     # Date range options
     range_group = parser.add_argument_group("date range")
     range_group.add_argument(
-        "--start", type=str,
+        "--start",
+        type=str,
         help="Start date for range download (YYYY-MM-DD)",
     )
     range_group.add_argument(
-        "--end", type=str,
+        "--end",
+        type=str,
         help="End date for range download (YYYY-MM-DD)",
     )
 

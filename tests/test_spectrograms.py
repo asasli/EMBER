@@ -5,7 +5,6 @@ import os
 
 import cdflib
 import numpy as np
-import pytest
 
 SCRIPTS_DIR = os.path.join(os.path.dirname(__file__), "..", "scripts")
 
@@ -26,25 +25,37 @@ def create_synthetic_dvac_cdf(path, n_bursts=2, n_samples=4096):
     t = np.arange(n_samples) / fs
     data = np.array([np.sin(2 * np.pi * 1000 * t + i) for i in range(n_bursts)])
 
-    base_tt2000 = cdflib.cdfepoch.compute_tt2000(
-        [2020, 9, 25, 6, 0, 0, 0, 0, 0]
-    )
+    base_tt2000 = cdflib.cdfepoch.compute_tt2000([2020, 9, 25, 6, 0, 0, 0, 0, 0])
     dt_ns = int(1e9 / fs)
     time_data = np.array(
-        [[base_tt2000 + j * dt_ns + i * n_samples * dt_ns for j in range(n_samples)]
-         for i in range(n_bursts)],
+        [
+            [base_tt2000 + j * dt_ns + i * n_samples * dt_ns for j in range(n_samples)]
+            for i in range(n_bursts)
+        ],
         dtype=np.int64,
     )
 
     cdf = cdflib.cdfwrite.CDF(path)
     cdf.write_var(
-        {"Variable": "psp_fld_l2_dfb_dbm_dvac12", "Data_Type": 8, "Num_Elements": 1,
-         "Rec_Vary": True, "Dim_Sizes": [n_samples], "Dim_Vary": [True]},
+        {
+            "Variable": "psp_fld_l2_dfb_dbm_dvac12",
+            "Data_Type": 8,
+            "Num_Elements": 1,
+            "Rec_Vary": True,
+            "Dim_Sizes": [n_samples],
+            "Dim_Vary": [True],
+        },
         var_data=data,
     )
     cdf.write_var(
-        {"Variable": "psp_fld_l2_dfb_dbm_dvac_time_series_TT2000", "Data_Type": 33,
-         "Num_Elements": 1, "Rec_Vary": True, "Dim_Sizes": [n_samples], "Dim_Vary": [True]},
+        {
+            "Variable": "psp_fld_l2_dfb_dbm_dvac_time_series_TT2000",
+            "Data_Type": 33,
+            "Num_Elements": 1,
+            "Rec_Vary": True,
+            "Dim_Sizes": [n_samples],
+            "Dim_Vary": [True],
+        },
         var_data=time_data,
     )
     cdf.close()
@@ -57,30 +68,48 @@ def create_synthetic_vac_cdf(path, n_bursts=2, n_samples=4096):
     vac1 = np.array([np.sin(2 * np.pi * 500 * t + i) for i in range(n_bursts)])
     vac2 = np.array([np.sin(2 * np.pi * 500 * t + i + 0.5) for i in range(n_bursts)])
 
-    base_tt2000 = cdflib.cdfepoch.compute_tt2000(
-        [2021, 8, 8, 18, 0, 0, 0, 0, 0]
-    )
+    base_tt2000 = cdflib.cdfepoch.compute_tt2000([2021, 8, 8, 18, 0, 0, 0, 0, 0])
     dt_ns = int(1e9 / fs)
     time_data = np.array(
-        [[base_tt2000 + j * dt_ns + i * n_samples * dt_ns for j in range(n_samples)]
-         for i in range(n_bursts)],
+        [
+            [base_tt2000 + j * dt_ns + i * n_samples * dt_ns for j in range(n_samples)]
+            for i in range(n_bursts)
+        ],
         dtype=np.int64,
     )
 
     cdf = cdflib.cdfwrite.CDF(path)
     cdf.write_var(
-        {"Variable": "psp_fld_l2_dfb_dbm_vac1", "Data_Type": 8, "Num_Elements": 1,
-         "Rec_Vary": True, "Dim_Sizes": [n_samples], "Dim_Vary": [True]},
+        {
+            "Variable": "psp_fld_l2_dfb_dbm_vac1",
+            "Data_Type": 8,
+            "Num_Elements": 1,
+            "Rec_Vary": True,
+            "Dim_Sizes": [n_samples],
+            "Dim_Vary": [True],
+        },
         var_data=vac1,
     )
     cdf.write_var(
-        {"Variable": "psp_fld_l2_dfb_dbm_vac2", "Data_Type": 8, "Num_Elements": 1,
-         "Rec_Vary": True, "Dim_Sizes": [n_samples], "Dim_Vary": [True]},
+        {
+            "Variable": "psp_fld_l2_dfb_dbm_vac2",
+            "Data_Type": 8,
+            "Num_Elements": 1,
+            "Rec_Vary": True,
+            "Dim_Sizes": [n_samples],
+            "Dim_Vary": [True],
+        },
         var_data=vac2,
     )
     cdf.write_var(
-        {"Variable": "psp_fld_l2_dfb_dbm_vac_time_series_TT2000", "Data_Type": 33,
-         "Num_Elements": 1, "Rec_Vary": True, "Dim_Sizes": [n_samples], "Dim_Vary": [True]},
+        {
+            "Variable": "psp_fld_l2_dfb_dbm_vac_time_series_TT2000",
+            "Data_Type": 33,
+            "Num_Elements": 1,
+            "Rec_Vary": True,
+            "Dim_Sizes": [n_samples],
+            "Dim_Vary": [True],
+        },
         var_data=time_data,
     )
     cdf.close()
@@ -115,7 +144,9 @@ class TestDvacSpectrograms:
         assert len(pngs) == 0
 
         # Verify npz contents
-        data = np.load(os.path.join(output_dir, "dvac12_burst_000.npz"), allow_pickle=True)
+        data = np.load(
+            os.path.join(output_dir, "dvac12_burst_000.npz"), allow_pickle=True
+        )
         assert "f_log" in data
         assert "Sxx_log" in data
         assert "t" in data
@@ -177,7 +208,9 @@ class TestVacSpectrograms:
         npzs = [f for f in os.listdir(output_dir) if f.endswith(".npz")]
         assert len(npzs) == 2
 
-        data = np.load(os.path.join(output_dir, "vac12_burst_000.npz"), allow_pickle=True)
+        data = np.load(
+            os.path.join(output_dir, "vac12_burst_000.npz"), allow_pickle=True
+        )
         assert "f_log" in data
         assert "Sxx_log" in data
         assert "t" in data

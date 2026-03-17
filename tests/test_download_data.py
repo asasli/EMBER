@@ -1,17 +1,16 @@
 """Tests for the download_data script."""
 
 import os
-import tempfile
 from datetime import datetime
 from unittest import mock
 
-import pytest
 
 # Import functions from the script
 import importlib.util
 
 spec = importlib.util.spec_from_file_location(
-    "download_data", os.path.join(os.path.dirname(__file__), "..", "scripts", "download_data.py")
+    "download_data",
+    os.path.join(os.path.dirname(__file__), "..", "scripts", "download_data.py"),
 )
 download_data = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(download_data)
@@ -81,7 +80,9 @@ class TestDownloadFile:
     def test_skips_existing_file(self, tmp_path):
         existing = tmp_path / "test.cdf"
         existing.write_text("data")
-        result = download_data.download_file("http://example.com/test.cdf", str(existing))
+        result = download_data.download_file(
+            "http://example.com/test.cdf", str(existing)
+        )
         assert result is True
 
     def test_handles_http_error(self, tmp_path):
@@ -89,7 +90,7 @@ class TestDownloadFile:
         with mock.patch("urllib.request.urlretrieve", side_effect=Exception("fail")):
             # Should not raise
             try:
-                result = download_data.download_file("http://bad-url/test.cdf", outpath)
+                download_data.download_file("http://bad-url/test.cdf", outpath)
             except Exception:
                 pass
             assert not os.path.exists(outpath)
