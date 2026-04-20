@@ -12,16 +12,44 @@ dependencies = [
     "cdflib",
     "matplotlib",
     "numpy",
+    "pandas",
     "scipy",
+    "seaborn",
 ]
 
 [project.optional-dependencies]
+anomaly = [
+    "PyWavelets",
+    "scikit-learn",
+    "torch",
+    "torchvision",
+    "zuko",
+]
+anomaly-notebook = [
+    "PyWavelets",
+    "lightgbm",
+    "open_clip_torch",
+    "scikit-learn",
+    "timm",
+    "torch",
+    "torchvision",
+    "umap-learn",
+    "zuko",
+]
 dev = [
     "pre-commit",
     "pytest",
 ]
+test = [
+    "pytest",
+]
 
 [project.scripts]
-ember-download = "scripts.download_data:main"
-ember-spectrograms-dvac = "scripts.create_spectrograms_dvac:main"
-ember-spectrograms-vac = "scripts.create_spectrograms_vac:main"
+ember-download = "ember.cli:main_download"
+ember-spectrograms-dvac = "ember.cli:main_spectrograms_dvac"
+ember-spectrograms-vac = "ember.cli:main_spectrograms_vac"
+ember-anomaly = "ember.cli:main_anomaly"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ember*"]
