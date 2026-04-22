@@ -18,7 +18,7 @@ The figure below shows which anomalies each detector recovers at the 1 % FAR ope
 
 ![Detection map](figures/detection_map.png)
 
-The ensemble (EnsV5) and its zero-extra-FP union with secondary detectors collectively recover the majority of events while keeping the false-alarm budget fixed at 1 FP per 99 held-out background samples.
+The ensemble (EnsEmber) and its zero-extra-FP union with secondary detectors collectively recover the majority of events while keeping the false-alarm budget fixed at 1 FP per 99 held-out background samples.
 
 ## Data
 
