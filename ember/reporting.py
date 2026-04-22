@@ -62,7 +62,8 @@ def plot_three_class_examples(
         ax.set_title(LABEL_TITLES.get(label, f"Label {label}"), fontsize=12, fontweight="bold")
         ax.set_xlabel("Time Bins")
         ax.set_ylabel("Log Frequency Bins")
-        time_utc = row["Time (UTC)"][0] if row["Time (UTC)"] else "n/a"
+        _t = row.get("Time (UTC)", None)
+        time_utc = _t[0] if _t is not None and len(_t) > 0 else "n/a"
         ax.text(
             0.01,
             0.01,
