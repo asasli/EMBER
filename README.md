@@ -10,7 +10,7 @@ EMBER uses machine learning to study core electron heating mechanisms driven by 
 
 EMBER's multi-detector pipeline is evaluated on Parker Solar Probe burst spectrograms
 (497 background, 42 anomalies across two physical classes).
-Detectors are trained on background-only data and calibrated on a held-out background set (99 samples) at a 1 % false-alarm rate.
+Detectors are trained on background-only data and calibrated on a held-out background set (100 samples) at a 1 % false-alarm rate.
 
 ### Detection map
 
@@ -18,7 +18,7 @@ The figure below shows which anomalies each detector recovers at the 1 % FAR ope
 
 ![Detection map](figures/detection_map.png)
 
-The ensemble (EnsEmber) and its zero-extra-FP union with secondary detectors collectively recover the majority of events while keeping the false-alarm budget fixed at 1 FP per 99 held-out background samples.
+The ensemble (EnsEmber) and its zero-extra-FP union with secondary detectors collectively recover the majority of events while keeping the false-alarm budget fixed at 1 FP per 100 held-out background samples.
 
 ## Data
 
