@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install .[dev]
+          pip install .[dev,anomaly]
 
       - name: Run tests
         run: pytest tests/ -v
