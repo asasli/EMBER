@@ -93,7 +93,9 @@ def prepare_specs_tensor(
     tensors = []
     for spec in specs_list:
         tensor = torch.tensor(spec, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
-        tensor = F.interpolate(tensor, size=(h, w), mode="bilinear", align_corners=False)
+        tensor = F.interpolate(
+            tensor, size=(h, w), mode="bilinear", align_corners=False
+        )
         tensors.append(tensor.squeeze(0))
     specs_t = torch.stack(tensors)
 
@@ -191,29 +193,41 @@ def train_autoencoder(
                 for start in range(0, len(X_val), batch_size):
                     batch = X_val[start : start + batch_size]
                     recon, _ = ae(batch)
-                    val_total_loss += float(F.mse_loss(recon, batch).item()) * len(batch)
+                    val_total_loss += float(F.mse_loss(recon, batch).item()) * len(
+                        batch
+                    )
             avg_val_loss = val_total_loss / max(1, len(X_val))
             monitor_loss = avg_val_loss
 
         if monitor_loss < best_loss - early_stopping_min_delta:
             best_loss = monitor_loss
-            best_state = {name: value.detach().cpu().clone() for name, value in ae.state_dict().items()}
+            best_state = {
+                name: value.detach().cpu().clone()
+                for name, value in ae.state_dict().items()
+            }
             epochs_without_improvement = 0
         else:
             epochs_without_improvement += 1
 
         if verbose and (epoch + 1) % 50 == 0:
             if avg_val_loss is None:
-                print(f"  Epoch {epoch + 1:3d}/{epochs} | Train loss: {avg_train_loss:.4f}")
+                print(
+                    f"  Epoch {epoch + 1:3d}/{epochs} | Train loss: {avg_train_loss:.4f}"
+                )
             else:
                 print(
                     f"  Epoch {epoch + 1:3d}/{epochs} | "
                     f"Train loss: {avg_train_loss:.4f} | Val loss: {avg_val_loss:.4f}"
                 )
 
-        if early_stopping_patience is not None and epochs_without_improvement >= early_stopping_patience:
+        if (
+            early_stopping_patience is not None
+            and epochs_without_improvement >= early_stopping_patience
+        ):
             if verbose:
-                print(f"  Early stopping at epoch {epoch + 1:3d}/{epochs} | Best monitored loss: {best_loss:.4f}")
+                print(
+                    f"  Early stopping at epoch {epoch + 1:3d}/{epochs} | Best monitored loss: {best_loss:.4f}"
+                )
             break
 
     if restore_best and best_state is not None:
@@ -235,7 +249,9 @@ def score_with_ae(
     """Score the full spectrogram bank with reconstruction error."""
 
     device = _resolve_device(device)
-    specs_t, _, _ = prepare_specs_tensor(all_specs_np, h=h, w=w, noise_mean=mu, noise_std=std)
+    specs_t, _, _ = prepare_specs_tensor(
+        all_specs_np, h=h, w=w, noise_mean=mu, noise_std=std
+    )
 
     ae.eval()
     scores = []
@@ -285,11 +301,15 @@ def score_with_ae_loo(
     scores = np.zeros(n_samples, dtype=np.float32)
     latents: np.ndarray | None = None
 
-    def _fit_on_noise(train_noise_idx: np.ndarray, note: str) -> tuple[SpectrogramAE, torch.Tensor, torch.Tensor]:
+    def _fit_on_noise(
+        train_noise_idx: np.ndarray, note: str
+    ) -> tuple[SpectrogramAE, torch.Tensor, torch.Tensor]:
         if len(train_noise_idx) == 0:
             raise ValueError("Each AE fold needs at least one training noise sample.")
         if verbose:
-            print(f"Training strict AE fold for {note} on {len(train_noise_idx)} noise samples...")
+            print(
+                f"Training strict AE fold for {note} on {len(train_noise_idx)} noise samples..."
+            )
         return train_autoencoder(
             [specs[idx] for idx in train_noise_idx],
             epochs=epochs,
@@ -391,7 +411,9 @@ class AffineCoupling(nn.Module):
             nn.Conv2d(64, in_channels, 3, padding=1),
         )
 
-    def forward(self, x: torch.Tensor, reverse: bool = False) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(
+        self, x: torch.Tensor, reverse: bool = False
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         x1, x2 = x.chunk(2, dim=1)
         h = self.net(x1)
         s, t = h.chunk(2, dim=1)
@@ -413,7 +435,9 @@ class SimpleFlow(nn.Module):
 
     def __init__(self, in_channels: int = 2, num_layers: int = 6):
         super().__init__()
-        self.layers = nn.ModuleList([AffineCoupling(in_channels) for _ in range(num_layers)])
+        self.layers = nn.ModuleList(
+            [AffineCoupling(in_channels) for _ in range(num_layers)]
+        )
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         log_det_total = 0
@@ -555,7 +579,9 @@ class ContrastiveEncoder(nn.Module):
         return F.normalize(z, dim=1)
 
 
-def contrastive_loss(z1: torch.Tensor, z2: torch.Tensor, *, temperature: float = 0.1) -> torch.Tensor:
+def contrastive_loss(
+    z1: torch.Tensor, z2: torch.Tensor, *, temperature: float = 0.1
+) -> torch.Tensor:
     """Compatibility loss mirroring the notebook helper."""
 
     z = torch.cat([z1, z2], dim=0)
@@ -585,7 +611,9 @@ def augment_batch(x: torch.Tensor) -> torch.Tensor:
     return y
 
 
-def info_nce_loss(z1: torch.Tensor, z2: torch.Tensor, *, temperature: float = 0.2) -> torch.Tensor:
+def info_nce_loss(
+    z1: torch.Tensor, z2: torch.Tensor, *, temperature: float = 0.2
+) -> torch.Tensor:
     """InfoNCE loss used by the contrastive encoder notebook cell."""
 
     z1 = F.normalize(z1, dim=1)
@@ -615,7 +643,12 @@ def encode_specs(
     embeddings = []
     with torch.no_grad():
         for spec in specs_list:
-            batch_tensor = torch.tensor(spec, dtype=torch.float32).unsqueeze(0).unsqueeze(0).to(device)
+            batch_tensor = (
+                torch.tensor(spec, dtype=torch.float32)
+                .unsqueeze(0)
+                .unsqueeze(0)
+                .to(device)
+            )
             hidden = model.encode(batch_tensor)
             embeddings.append(hidden.squeeze(0).cpu().numpy())
     return np.vstack(embeddings)
@@ -635,7 +668,9 @@ def train_contrastive_encoder(
 
     device = _resolve_device(device)
     train_loader, _, _, _ = build_noise_dataloaders(noise_specs, batch_size=batch_size)
-    model = ContrastiveEncoder(in_ch=1, latent_dim=latent_dim, projection_dim=projection_dim).to(device)
+    model = ContrastiveEncoder(
+        in_ch=1, latent_dim=latent_dim, projection_dim=projection_dim
+    ).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
 
     for epoch in range(epochs):
@@ -737,6 +772,7 @@ def blend_scores(
 # β-VAE (Variational Autoencoder)
 # ---------------------------------------------------------------------------
 
+
 class SpectrogramVAE(nn.Module):
     """β-Variational Autoencoder for 2-D spectrograms.
 
@@ -754,27 +790,42 @@ class SpectrogramVAE(nn.Module):
         reconstruction at the cost of regularisation).
     """
 
-    def __init__(self, h: int = 64, w: int = 64, latent_dim: int = 32, beta: float = 0.5):
+    def __init__(
+        self, h: int = 64, w: int = 64, latent_dim: int = 32, beta: float = 0.5
+    ):
         super().__init__()
         self.latent_dim = latent_dim
         self.beta = beta
 
         self.encoder_conv = nn.Sequential(
-            nn.Conv2d(1, 32, 3, stride=2, padding=1), nn.BatchNorm2d(32), nn.LeakyReLU(0.2),
-            nn.Conv2d(32, 64, 3, stride=2, padding=1), nn.BatchNorm2d(64), nn.LeakyReLU(0.2),
-            nn.Conv2d(64, 128, 3, stride=2, padding=1), nn.BatchNorm2d(128), nn.LeakyReLU(0.2),
+            nn.Conv2d(1, 32, 3, stride=2, padding=1),
+            nn.BatchNorm2d(32),
+            nn.LeakyReLU(0.2),
+            nn.Conv2d(32, 64, 3, stride=2, padding=1),
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(0.2),
+            nn.Conv2d(64, 128, 3, stride=2, padding=1),
+            nn.BatchNorm2d(128),
+            nn.LeakyReLU(0.2),
             nn.AdaptiveAvgPool2d(4),
             nn.Flatten(),
         )
-        self.fc_mu     = nn.Linear(128 * 4 * 4, latent_dim)
+        self.fc_mu = nn.Linear(128 * 4 * 4, latent_dim)
         self.fc_logvar = nn.Linear(128 * 4 * 4, latent_dim)
 
         self.decoder = nn.Sequential(
-            nn.Linear(latent_dim, 128 * 4 * 4), nn.LeakyReLU(0.2),
+            nn.Linear(latent_dim, 128 * 4 * 4),
+            nn.LeakyReLU(0.2),
             nn.Unflatten(1, (128, 4, 4)),
-            nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1), nn.BatchNorm2d(64), nn.LeakyReLU(0.2),
-            nn.ConvTranspose2d(64, 32, 4, stride=2, padding=1), nn.BatchNorm2d(32), nn.LeakyReLU(0.2),
-            nn.ConvTranspose2d(32, 16, 4, stride=2, padding=1), nn.BatchNorm2d(16), nn.LeakyReLU(0.2),
+            nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1),
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(0.2),
+            nn.ConvTranspose2d(64, 32, 4, stride=2, padding=1),
+            nn.BatchNorm2d(32),
+            nn.LeakyReLU(0.2),
+            nn.ConvTranspose2d(32, 16, 4, stride=2, padding=1),
+            nn.BatchNorm2d(16),
+            nn.LeakyReLU(0.2),
             nn.AdaptiveAvgPool2d((h, w)),
             nn.Conv2d(16, 1, 1),
         )
@@ -789,7 +840,9 @@ class SpectrogramVAE(nn.Module):
             return mu + std * torch.randn_like(std)
         return mu
 
-    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def forward(
+        self, x: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Return ``(reconstruction, mu, logvar)``."""
         mu, logvar = self.encode(x)
         z = self.reparameterise(mu, logvar)
@@ -801,7 +854,7 @@ class SpectrogramVAE(nn.Module):
             beta = self.beta
         recon, mu, logvar = self(x)
         recon_loss = F.mse_loss(recon, x, reduction="none").mean(dim=(1, 2, 3))
-        kl_loss    = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp()).sum(dim=1)
+        kl_loss = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp()).sum(dim=1)
         return recon_loss + beta * kl_loss
 
 
@@ -867,7 +920,7 @@ def train_vae(
     n_val = max(1, int(np.floor(val_frac * N)))
     perm = torch.randperm(N)
     X_train = specs_t[perm[n_val:]].to(device)
-    X_val   = specs_t[perm[:n_val]].to(device)
+    X_val = specs_t[perm[:n_val]].to(device)
 
     model = SpectrogramVAE(h=h, w=w, latent_dim=latent_dim, beta=beta).to(device)
     opt = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
@@ -886,7 +939,7 @@ def train_vae(
         shuf = torch.randperm(len(X_train), device=device)
         train_total, train_n = 0.0, 0
         for s in range(0, len(X_train), batch_size):
-            batch = X_train[shuf[s: s + batch_size]]
+            batch = X_train[shuf[s : s + batch_size]]
             opt.zero_grad()
             loss = model.elbo_loss(batch, beta=beta).mean()
             loss.backward()
@@ -919,7 +972,9 @@ def train_vae(
 
         if no_improve >= patience:
             if verbose:
-                print(f"  Early stop at epoch {epoch + 1}  best_val={best_val_loss:.4f}")
+                print(
+                    f"  Early stop at epoch {epoch + 1}  best_val={best_val_loss:.4f}"
+                )
             break
 
     if best_state is not None:
@@ -962,19 +1017,20 @@ def score_vae(
         ``elbo_scores`` shape (N,) — higher = more anomalous.
         ``latent_vectors`` shape (N, latent_dim) — ``z_mu`` for each sample.
     """
-    device  = _resolve_device(device)
-    specs_t, _, _ = prepare_specs_tensor(specs, h=h, w=w,
-                                          noise_mean=mu_norm, noise_std=std_norm)
+    device = _resolve_device(device)
+    specs_t, _, _ = prepare_specs_tensor(
+        specs, h=h, w=w, noise_mean=mu_norm, noise_std=std_norm
+    )
     X = specs_t.to(device)
     model.eval().to(device)
 
-    all_scores  = []
+    all_scores = []
     all_latents = []
     with torch.no_grad():
         for start in range(0, len(X), batch_size):
             batch = X[start : start + batch_size]
             scores = model.elbo_loss(batch)
-            mu, _  = model.encode(batch)
+            mu, _ = model.encode(batch)
             all_scores.append(scores.cpu().numpy())
             all_latents.append(mu.cpu().numpy())
 

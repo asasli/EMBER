@@ -47,7 +47,9 @@ def _build_embedding_detectors(
 
     return {
         "OCSVM": OneClassSVM(nu=0.1, kernel="rbf", gamma="scale"),
-        "IForest": IsolationForest(n_estimators=200, contamination=0.1, random_state=seed),
+        "IForest": IsolationForest(
+            n_estimators=200, contamination=0.1, random_state=seed
+        ),
         "LOF": LocalOutlierFactor(
             n_neighbors=n_neighbors,
             novelty=True,
@@ -84,8 +86,14 @@ def run_physics_loo_cv(
     del ae_latents_orig
 
     n_samples = len(labels_binary)
-    scores_oc = {key: np.zeros(n_samples, dtype=float) for key in ["OCSVM", "IForest", "LOF", "Mahal"]}
-    scores_ss = {"SVM_sup": np.zeros(n_samples, dtype=float), "RF_sup": np.zeros(n_samples, dtype=float)}
+    scores_oc = {
+        key: np.zeros(n_samples, dtype=float)
+        for key in ["OCSVM", "IForest", "LOF", "Mahal"]
+    }
+    scores_ss = {
+        "SVM_sup": np.zeros(n_samples, dtype=float),
+        "RF_sup": np.zeros(n_samples, dtype=float),
+    }
 
     for test_i in range(n_samples):
         train_noise_mask = np.asarray([idx != test_i for idx in noise_idx], dtype=bool)
@@ -118,7 +126,9 @@ def run_physics_loo_cv(
         n_neighbors = min(15, max_neighbors, max(1, len(x_train_p) // 3))
         detectors = {
             "OCSVM": OneClassSVM(nu=0.08, kernel="rbf", gamma="scale"),
-            "IForest": IsolationForest(n_estimators=300, contamination=0.1, random_state=seed),
+            "IForest": IsolationForest(
+                n_estimators=300, contamination=0.1, random_state=seed
+            ),
             "LOF": LocalOutlierFactor(
                 n_neighbors=n_neighbors,
                 novelty=True,
@@ -131,7 +141,9 @@ def run_physics_loo_cv(
             detector.fit(x_train_p)
             scores_oc[name][test_i] = float(-detector.score_samples(x_test_p)[0])
 
-        train_all_idx = np.asarray([j for j in range(n_samples) if j != test_i], dtype=int)
+        train_all_idx = np.asarray(
+            [j for j in range(n_samples) if j != test_i], dtype=int
+        )
         x_sup_raw = physics_feats_orig[train_all_idx]
         y_sup = labels_binary[train_all_idx]
 
@@ -179,7 +191,11 @@ def run_physics_loo_cv(
             scores_ss["SVM_sup"][test_i] = 0.5
             scores_ss["RF_sup"][test_i] = 0.5
 
-    return {**scores_oc, **scores_ss, "AE_recon": np.asarray(ae_scores_orig, dtype=float)}
+    return {
+        **scores_oc,
+        **scores_ss,
+        "AE_recon": np.asarray(ae_scores_orig, dtype=float),
+    }
 
 
 def run_embedding_loo_cv(
@@ -253,7 +269,11 @@ def run_embedding_loo_cv(
             n_neighbors = min(15, max(1, len(x_train_s) - 1))
             detectors = _build_embedding_detectors(n_neighbors=n_neighbors, seed=seed)
             if detectors_to_use is not None:
-                detectors = {name: detectors[name] for name in detectors_to_use if name in detectors}
+                detectors = {
+                    name: detectors[name]
+                    for name in detectors_to_use
+                    if name in detectors
+                }
             if not detectors:
                 raise ValueError("No valid detectors were selected.")
 
@@ -262,9 +282,15 @@ def run_embedding_loo_cv(
                 all_scores.setdefault(key, np.zeros(len(labels_binary), dtype=float))
 
                 try:
-                    detector = MahalanobisDetector() if det_name == "Mahal" else clone(det_template)
+                    detector = (
+                        MahalanobisDetector()
+                        if det_name == "Mahal"
+                        else clone(det_template)
+                    )
                     detector.fit(x_train_s)
-                    all_scores[key][test_i] = float(-detector.score_samples(x_test_s)[0])
+                    all_scores[key][test_i] = float(
+                        -detector.score_samples(x_test_s)[0]
+                    )
                 except Exception:
                     all_scores[key][test_i] = 0.0
 
@@ -300,7 +326,11 @@ def linear_probe_auc(
     bincount = np.bincount(y)
     n_splits = min(n_splits, int(bincount.min())) if bincount.size else 0
     if n_splits < 2:
-        return {"auc": np.nan, "ap": np.nan, "preds": np.full(len(y), 0.5, dtype=np.float32)}
+        return {
+            "auc": np.nan,
+            "ap": np.nan,
+            "preds": np.full(len(y), 0.5, dtype=np.float32),
+        }
 
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
     oof = np.zeros(len(y), dtype=np.float32)

@@ -23,12 +23,15 @@ def _load_torchvision():
     """Import torchvision, working around libstdc++ version mismatches on some HPC clusters."""
     try:
         import torchvision.models as tv
+
         return tv
     except ImportError:
         pass
 
     # Attempt: preload the conda env's newer libstdc++ before PIL's C extension loads
-    import glob, os
+    import glob
+    import os
+
     conda_prefix = os.environ.get(
         "CONDA_PREFIX",
         str(__file__).split("lib/python")[0] if "lib/python" in __file__ else "",
@@ -41,6 +44,7 @@ def _load_torchvision():
             try:
                 ctypes.CDLL(path)
                 import torchvision.models as tv
+
                 return tv
             except Exception:
                 continue
@@ -78,14 +82,14 @@ class PatchCoreDetector:
         batch_size: int = 16,
         n_jobs: int = 1,
     ):
-        self.pool_size  = pool_size
-        self.knn_k      = knn_k
-        self.img_size   = img_size
+        self.pool_size = pool_size
+        self.knn_k = knn_k
+        self.img_size = img_size
         self.batch_size = batch_size
-        self.n_jobs     = n_jobs
-        self._device    = None
-        self._backbone  = None
-        self._knn       = None
+        self.n_jobs = n_jobs
+        self._device = None
+        self._backbone = None
+        self._knn = None
         self._device_str = device
 
     # ------------------------------------------------------------------ #
@@ -95,6 +99,7 @@ class PatchCoreDetector:
     def _get_device(self):
         if self._device is None:
             import torch
+
             dev = self._device_str or ("cuda" if torch.cuda.is_available() else "cpu")
             self._device = torch.device(dev)
         return self._device
@@ -119,6 +124,7 @@ class PatchCoreDetector:
         def _hook(name):
             def fn(m, inp, out):
                 feat_cache[name] = out.detach()
+
             return fn
 
         backbone.layer2.register_forward_hook(_hook("l2"))
@@ -127,13 +133,13 @@ class PatchCoreDetector:
         pool = nn.AdaptiveAvgPool2d(self.pool_size).to(device)
 
         imagenet_mean = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1).to(device)
-        imagenet_std  = torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1).to(device)
+        imagenet_std = torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1).to(device)
 
-        self._backbone    = backbone
-        self._feat_cache  = feat_cache
-        self._pool        = pool
-        self._im_mean     = imagenet_mean
-        self._im_std      = imagenet_std
+        self._backbone = backbone
+        self._feat_cache = feat_cache
+        self._pool = pool
+        self._im_mean = imagenet_mean
+        self._im_std = imagenet_std
         return backbone
 
     def _preprocess(self, specs: Sequence[np.ndarray]):
@@ -147,20 +153,19 @@ class PatchCoreDetector:
             lo, hi = t.min(), t.max()
             t = (t - lo) / (hi - lo + 1e-9)
             t = t.unsqueeze(0).unsqueeze(0).expand(1, 3, -1, -1).clone()
-            t = F.interpolate(t, (self.img_size, self.img_size),
-                              mode="bilinear", align_corners=False)
+            t = F.interpolate(
+                t, (self.img_size, self.img_size), mode="bilinear", align_corners=False
+            )
             tensors.append(t)
         x = torch.cat(tensors, 0).to(device)
         return (x - self._im_mean) / self._im_std
 
-    def _extract_patch_features(
-        self, specs: Sequence[np.ndarray]
-    ) -> np.ndarray:
+    def _extract_patch_features(self, specs: Sequence[np.ndarray]) -> np.ndarray:
         """Return (N, pool_size², 1536) float32 patch features."""
         import torch
 
         backbone = self._get_backbone()
-        device   = self._get_device()
+        self._get_device()
         all_patches = []
 
         for i in range(0, len(specs), self.batch_size):
@@ -168,14 +173,14 @@ class PatchCoreDetector:
             x = self._preprocess(batch)
             with torch.no_grad():
                 _ = backbone(x)
-            l2 = self._pool(self._feat_cache["l2"])   # (B, 512, P, P)
-            l3 = self._pool(self._feat_cache["l3"])   # (B, 1024, P, P)
-            combined = torch.cat([l2, l3], dim=1)      # (B, 1536, P, P)
+            l2 = self._pool(self._feat_cache["l2"])  # (B, 512, P, P)
+            l3 = self._pool(self._feat_cache["l3"])  # (B, 1024, P, P)
+            combined = torch.cat([l2, l3], dim=1)  # (B, 1536, P, P)
             B, C, P, _ = combined.shape
             patches = combined.permute(0, 2, 3, 1).reshape(B, P * P, C)
             all_patches.append(patches.cpu().numpy().astype(np.float32))
 
-        return np.concatenate(all_patches, axis=0)   # (N, P², 1536)
+        return np.concatenate(all_patches, axis=0)  # (N, P², 1536)
 
     # ------------------------------------------------------------------ #
     # Public API
@@ -198,7 +203,7 @@ class PatchCoreDetector:
             ) from exc
 
         patches = self._extract_patch_features(bg_train_specs)  # (N, P², 1536)
-        mem_bank = patches.reshape(-1, patches.shape[-1])         # (N*P², 1536)
+        mem_bank = patches.reshape(-1, patches.shape[-1])  # (N*P², 1536)
 
         knn = NearestNeighbors(
             n_neighbors=self.knn_k,
@@ -231,7 +236,7 @@ class PatchCoreDetector:
         N, P2, C = patches.shape
         flat = patches.reshape(N * P2, C)
 
-        dists, _ = self._knn.kneighbors(flat)      # (N*P², k)
-        nn_score  = dists.mean(axis=1)              # mean-k dist per patch
-        per_img   = nn_score.reshape(N, P2).max(axis=1)  # worst patch per image
+        dists, _ = self._knn.kneighbors(flat)  # (N*P², k)
+        nn_score = dists.mean(axis=1)  # mean-k dist per patch
+        per_img = nn_score.reshape(N, P2).max(axis=1)  # worst patch per image
         return per_img

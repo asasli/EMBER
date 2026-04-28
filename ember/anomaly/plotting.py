@@ -7,13 +7,19 @@ or embed them as needed.  Nothing is shown or saved automatically.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
+
+if TYPE_CHECKING:
+    import matplotlib.figure
+    import pandas
 
 
 # ---------------------------------------------------------------------------
 # Score distributions
 # ---------------------------------------------------------------------------
+
 
 def plot_score_distributions(
     bg_scores: np.ndarray,
@@ -24,7 +30,7 @@ def plot_score_distributions(
     label2_mask: np.ndarray | None = None,
     title: str = "Anomaly Score Distribution",
     xlabel: str = "Score",
-) -> "matplotlib.figure.Figure":
+) -> matplotlib.figure.Figure:
     """Histogram of background vs anomaly scores with threshold line.
 
     Parameters
@@ -42,15 +48,40 @@ def plot_score_distributions(
 
     fig, ax = plt.subplots(figsize=(10, 4))
 
-    ax.hist(bg_scores,   bins=50, alpha=0.6, color="steelblue", label=f"Background (n={len(bg_scores)})")
+    ax.hist(
+        bg_scores,
+        bins=50,
+        alpha=0.6,
+        color="steelblue",
+        label=f"Background (n={len(bg_scores)})",
+    )
     if label1_mask is not None and label2_mask is not None:
-        ax.hist(anom_scores[label1_mask],  bins=20, alpha=0.75, color="orange", label="Anomaly label-1")
-        ax.hist(anom_scores[label2_mask],  bins=20, alpha=0.75, color="tomato",  label="Anomaly label-2")
+        ax.hist(
+            anom_scores[label1_mask],
+            bins=20,
+            alpha=0.75,
+            color="orange",
+            label="Anomaly label-1",
+        )
+        ax.hist(
+            anom_scores[label2_mask],
+            bins=20,
+            alpha=0.75,
+            color="tomato",
+            label="Anomaly label-2",
+        )
     else:
-        ax.hist(anom_scores, bins=20, alpha=0.75, color="tomato", label=f"Anomaly (n={len(anom_scores)})")
+        ax.hist(
+            anom_scores,
+            bins=20,
+            alpha=0.75,
+            color="tomato",
+            label=f"Anomaly (n={len(anom_scores)})",
+        )
 
-    ax.axvline(threshold, color="red", lw=1.5, ls="--",
-               label=f"Threshold ({threshold:.3f})")
+    ax.axvline(
+        threshold, color="red", lw=1.5, ls="--", label=f"Threshold ({threshold:.3f})"
+    )
     ax.set_xlabel(xlabel, fontsize=11)
     ax.set_ylabel("Count", fontsize=11)
     ax.set_title(title, fontsize=12)
@@ -63,6 +94,7 @@ def plot_score_distributions(
 # ROC curve with operating points
 # ---------------------------------------------------------------------------
 
+
 def plot_roc_with_operating_points(
     y_true: np.ndarray,
     scores_dict: dict[str, np.ndarray],
@@ -70,7 +102,7 @@ def plot_roc_with_operating_points(
     operating_points: list[tuple[float, float, str]] | None = None,
     far_xlim: float = 0.15,
     title: str = "ROC Curves",
-) -> "matplotlib.figure.Figure":
+) -> matplotlib.figure.Figure:
     """ROC curves for multiple detectors with optional operating-point markers.
 
     Parameters
@@ -100,8 +132,15 @@ def plot_roc_with_operating_points(
 
     if operating_points:
         for fpr_op, tpr_op, op_label in operating_points:
-            ax.scatter([fpr_op], [tpr_op], s=120, marker="*",
-                       color="red", zorder=6, label=op_label)
+            ax.scatter(
+                [fpr_op],
+                [tpr_op],
+                s=120,
+                marker="*",
+                color="red",
+                zorder=6,
+                label=op_label,
+            )
 
     ax.axvline(0.01, color="gray", lw=1, ls="--", alpha=0.6, label="1% FAR")
     ax.set_xlim(-0.005, far_xlim)
@@ -119,6 +158,7 @@ def plot_roc_with_operating_points(
 # Spectrogram grid
 # ---------------------------------------------------------------------------
 
+
 def plot_spectrogram_grid(
     groups: dict[str, Sequence[np.ndarray]],
     *,
@@ -128,7 +168,7 @@ def plot_spectrogram_grid(
     cmap: str = "plasma",
     scores: dict[str, Sequence[float]] | None = None,
     title: str = "Spectrogram Comparison",
-) -> "matplotlib.figure.Figure":
+) -> matplotlib.figure.Figure:
     """Side-by-side spectrogram grid grouped by category.
 
     Parameters
@@ -153,7 +193,8 @@ def plot_spectrogram_grid(
         vmax = float(np.percentile(all_arr, 98))
 
     fig, axes = plt.subplots(
-        n_rows, n_per_row,
+        n_rows,
+        n_per_row,
         figsize=(n_per_row * 3.5, n_rows * 3.0),
     )
     if n_rows == 1:
@@ -164,8 +205,14 @@ def plot_spectrogram_grid(
         for col in range(n_per_row):
             ax = axes[row, col]
             if col < len(specs):
-                ax.imshow(np.asarray(specs[col]), aspect="auto", origin="lower",
-                          vmin=vmin, vmax=vmax, cmap=cmap)
+                ax.imshow(
+                    np.asarray(specs[col]),
+                    aspect="auto",
+                    origin="lower",
+                    vmin=vmin,
+                    vmax=vmax,
+                    cmap=cmap,
+                )
                 sc = row_scores[col] if col < len(row_scores) else None
                 subtitle = f"sc={sc:.3f}" if sc is not None else ""
                 ax.set_title(subtitle, fontsize=8)
@@ -184,6 +231,7 @@ def plot_spectrogram_grid(
 # Detector heatmap
 # ---------------------------------------------------------------------------
 
+
 def plot_detector_heatmap(
     score_matrix: np.ndarray,
     detector_names: list[str],
@@ -195,7 +243,7 @@ def plot_detector_heatmap(
     divider_row: int | None = None,
     divider_label_top: str = "",
     divider_label_bottom: str = "",
-) -> "matplotlib.figure.Figure":
+) -> matplotlib.figure.Figure:
     """Heatmap of rank-normalised detector scores (rows = samples, cols = detectors).
 
     Parameters
@@ -225,14 +273,27 @@ def plot_detector_heatmap(
         ax.axhline(divider_row - 0.5, color="white", lw=2, ls="--")
         mid_x = len(detector_names) / 2
         if divider_label_top:
-            ax.text(mid_x, divider_row / 2 - 0.5, divider_label_top,
-                    ha="center", va="center", color="white",
-                    fontsize=10, fontweight="bold")
+            ax.text(
+                mid_x,
+                divider_row / 2 - 0.5,
+                divider_label_top,
+                ha="center",
+                va="center",
+                color="white",
+                fontsize=10,
+                fontweight="bold",
+            )
         if divider_label_bottom:
-            ax.text(mid_x, divider_row + (len(row_labels) - divider_row) / 2 - 0.5,
-                    divider_label_bottom,
-                    ha="center", va="center", color="white",
-                    fontsize=10, fontweight="bold")
+            ax.text(
+                mid_x,
+                divider_row + (len(row_labels) - divider_row) / 2 - 0.5,
+                divider_label_bottom,
+                ha="center",
+                va="center",
+                color="white",
+                fontsize=10,
+                fontweight="bold",
+            )
 
     ax.set_title(title, fontweight="bold")
     fig.tight_layout()
@@ -243,6 +304,7 @@ def plot_detector_heatmap(
 # FP cluster time-series
 # ---------------------------------------------------------------------------
 
+
 def plot_fp_cluster_timeseries(
     bg_scores: np.ndarray,
     threshold: float,
@@ -251,7 +313,7 @@ def plot_fp_cluster_timeseries(
     *,
     title: str = "Ensemble Score — Background Eval",
     xlabel: str = "Background eval sample index",
-) -> "matplotlib.figure.Figure":
+) -> matplotlib.figure.Figure:
     """Plot background eval scores with FP positions and cluster window marked.
 
     Parameters
@@ -270,16 +332,27 @@ def plot_fp_cluster_timeseries(
     fig, ax = plt.subplots(figsize=(14, 4))
     t = np.arange(len(bg_scores))
     ax.plot(t, bg_scores, color="steelblue", lw=0.7, alpha=0.8, label="BG eval score")
-    ax.axhline(threshold, color="red", lw=1.5, ls="--",
-               label=f"Threshold ({threshold:.3f})")
+    ax.axhline(
+        threshold, color="red", lw=1.5, ls="--", label=f"Threshold ({threshold:.3f})"
+    )
 
     if cluster_window is not None:
-        ax.axvspan(cluster_window[0], cluster_window[1],
-                   alpha=0.2, color="orange",
-                   label=f"Main FP cluster ({cluster_window[1]-cluster_window[0]+1} samples)")
+        ax.axvspan(
+            cluster_window[0],
+            cluster_window[1],
+            alpha=0.2,
+            color="orange",
+            label=f"Main FP cluster ({cluster_window[1] - cluster_window[0] + 1} samples)",
+        )
 
-    ax.scatter(fp_positions, bg_scores[fp_positions],
-               color="red", s=25, zorder=5, label=f"FPs ({len(fp_positions)})")
+    ax.scatter(
+        fp_positions,
+        bg_scores[fp_positions],
+        color="red",
+        s=25,
+        zorder=5,
+        label=f"FPs ({len(fp_positions)})",
+    )
 
     ax.set_xlabel(xlabel, fontsize=11)
     ax.set_ylabel("Ensemble score", fontsize=11)
@@ -293,13 +366,14 @@ def plot_fp_cluster_timeseries(
 # Ensemble weight bar chart
 # ---------------------------------------------------------------------------
 
+
 def plot_weight_bar(
-    weight_df: "pandas.DataFrame",
+    weight_df: pandas.DataFrame,
     *,
     detector_col: str = "detector",
     weight_col: str = "weight",
     title: str = "Ensemble Weights",
-) -> "matplotlib.figure.Figure":
+) -> matplotlib.figure.Figure:
     """Horizontal bar chart of ensemble detector weights.
 
     Parameters
@@ -310,8 +384,13 @@ def plot_weight_bar(
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(figsize=(8, max(3, len(weight_df) * 0.5)))
-    bars = ax.barh(weight_df[detector_col], weight_df[weight_col],
-                   color="steelblue", edgecolor="k", linewidth=0.5)
+    bars = ax.barh(
+        weight_df[detector_col],
+        weight_df[weight_col],
+        color="steelblue",
+        edgecolor="k",
+        linewidth=0.5,
+    )
     ax.bar_label(bars, fmt="%.3f", padding=3, fontsize=9)
     ax.set_xlabel("Weight", fontsize=11)
     ax.set_title(title, fontsize=12)

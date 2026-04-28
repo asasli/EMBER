@@ -32,7 +32,9 @@ def summarize_feature_discrimination(
     n_features = values.shape[1]
 
     if feature_names is not None and len(feature_names) != n_features:
-        raise ValueError("feature_names must match the number of columns in feature_matrix.")
+        raise ValueError(
+            "feature_names must match the number of columns in feature_matrix."
+        )
 
     rows: list[dict[str, object]] = []
     for feature_idx in range(n_features):
@@ -58,10 +60,14 @@ def summarize_feature_discrimination(
             }
         )
 
-    return pd.DataFrame(rows).sort_values(
-        ["effect_size", "p_value"],
-        ascending=[False, True],
-    ).reset_index(drop=True)
+    return (
+        pd.DataFrame(rows)
+        .sort_values(
+            ["effect_size", "p_value"],
+            ascending=[False, True],
+        )
+        .reset_index(drop=True)
+    )
 
 
 def bootstrap_eval(
@@ -177,8 +183,12 @@ def analyze_class(
     threshold = np.percentile(np.asarray(scores)[noise_idx], 100 * (1 - fpr))
     scores = np.asarray(scores, dtype=float)
     return {
-        "tpr_c1": float((scores[class1_idx] > threshold).sum() / max(1, len(class1_idx))),
-        "tpr_c2": float((scores[class2_idx] > threshold).sum() / max(1, len(class2_idx))),
+        "tpr_c1": float(
+            (scores[class1_idx] > threshold).sum() / max(1, len(class1_idx))
+        ),
+        "tpr_c2": float(
+            (scores[class2_idx] > threshold).sum() / max(1, len(class2_idx))
+        ),
     }
 
 
@@ -294,7 +304,9 @@ def evaluate_budgeted_accumulation(
     for step, method in enumerate(method_order):
         scores = all_methods[method]
         if step == 0:
-            threshold, detected_idx = threshold_detections(scores, noise_idx, fpr=first_fpr)
+            threshold, detected_idx = threshold_detections(
+                scores, noise_idx, fpr=first_fpr
+            )
             stage_rule = f"fpr={first_fpr:.1%}"
         else:
             threshold, detected_idx = threshold_zero_fp(scores, noise_idx)
@@ -349,7 +361,9 @@ def evaluate_budgeted_accumulation(
         vote_rows.append(row)
 
     votes_df = (
-        pd.DataFrame(vote_rows).sort_values(["votes", "sample_idx"], ascending=[False, True])
+        pd.DataFrame(vote_rows).sort_values(
+            ["votes", "sample_idx"], ascending=[False, True]
+        )
         if vote_rows
         else pd.DataFrame(columns=["sample_idx", "votes", "methods", "label"])
     )
@@ -390,7 +404,10 @@ def render_budgeted_case(
     total_anomalies = (
         int(total_anomalies)
         if total_anomalies is not None
-        else int(len(case_result["combined_unique_anomalies"]) + len(case_result["missed_true_anomalies"]))
+        else int(
+            len(case_result["combined_unique_anomalies"])
+            + len(case_result["missed_true_anomalies"])
+        )
     )
 
     lines = [
@@ -419,8 +436,8 @@ def render_budgeted_case(
             f"Unique anomalies recovered by union: {len(case_result['combined_unique_anomalies'])}",
             f"Coverage: {len(case_result['combined_unique_anomalies']) / max(1, total_anomalies):.1%}",
             (
-        f"Union false positives kept: {len(case_result['union_fp'])} "
-        f"({case_result['union_far']:.1%} of the noise set)"
+                f"Union false positives kept: {len(case_result['union_fp'])} "
+                f"({case_result['union_far']:.1%} of the noise set)"
             ),
             f"Still missed: {len(case_result['missed_true_anomalies'])}",
         ]
@@ -468,10 +485,14 @@ def greedy_zero_fp_order_oracle(
     ranking = [method for method in ranking if method in all_methods]
     signal_set = set(map(int, signal_idx))
     order = [start_method]
-    _, starter_idx = threshold_detections(all_methods[start_method], noise_idx, fpr=first_fpr)
+    _, starter_idx = threshold_detections(
+        all_methods[start_method], noise_idx, fpr=first_fpr
+    )
     seen_signal = set(map(int, set(starter_idx).intersection(signal_set)))
     remaining = [method for method in ranking if method != start_method]
-    zero_fp_cache = {method: threshold_zero_fp(all_methods[method], noise_idx) for method in ranking}
+    zero_fp_cache = {
+        method: threshold_zero_fp(all_methods[method], noise_idx) for method in ranking
+    }
 
     while remaining and len(order) < max_methods:
         best_method = None
@@ -484,7 +505,8 @@ def greedy_zero_fp_order_oracle(
             new_hits = [idx for idx in signal_hits if idx not in seen_signal]
 
             if len(new_hits) > len(best_new_hits) or (
-                len(new_hits) == len(best_new_hits) and len(signal_hits) > len(best_total_hits)
+                len(new_hits) == len(best_new_hits)
+                and len(signal_hits) > len(best_total_hits)
             ):
                 best_method = method
                 best_new_hits = new_hits
@@ -547,7 +569,9 @@ def build_default_case_orders(
 
     ranked_by_auc = results_df.sort_values("auc", ascending=False)["method"].tolist()
     if "tpr_1" in results_df.columns:
-        ranked_by_tpr = results_df.sort_values(["tpr_1", "auc"], ascending=[False, False])["method"].tolist()
+        ranked_by_tpr = results_df.sort_values(
+            ["tpr_1", "auc"], ascending=[False, False]
+        )["method"].tolist()
     else:
         ranked_by_tpr = ranked_by_auc
 
@@ -644,7 +668,10 @@ def compare_budgeted_cases(
 
     comparison_df = (
         pd.DataFrame(comparison_rows)
-        .sort_values(["coverage", "recovered", "union_fp", "methods"], ascending=[False, False, True, True])
+        .sort_values(
+            ["coverage", "recovered", "union_fp", "methods"],
+            ascending=[False, False, True, True],
+        )
         .reset_index(drop=True)
     )
     case_results_by_name = {result["case_name"]: result for result in case_results}
@@ -678,7 +705,9 @@ def build_case_scores(
 
     for step, method in enumerate(case_result["method_order"]):
         if step == 0:
-            _, detected_idx = threshold_detections(all_methods[method], noise_idx, fpr=first_fpr)
+            _, detected_idx = threshold_detections(
+                all_methods[method], noise_idx, fpr=first_fpr
+            )
         else:
             _, detected_idx = threshold_zero_fp(all_methods[method], noise_idx)
 
@@ -687,5 +716,9 @@ def build_case_scores(
         soft_parts.append(_minmax01(all_methods[method]))
         detection_map[method] = sorted(map(int, detected_idx))
 
-    soft_score = np.mean(np.vstack(soft_parts), axis=0) if soft_parts else np.zeros(n_samples, dtype=float)
+    soft_score = (
+        np.mean(np.vstack(soft_parts), axis=0)
+        if soft_parts
+        else np.zeros(n_samples, dtype=float)
+    )
     return vote_score, soft_score, detection_map

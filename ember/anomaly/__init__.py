@@ -82,31 +82,31 @@ _NAME_TO_MODULE = {
     "train_contrastive_encoder": "ember.anomaly.neural",
     "train_simple_flow": "ember.anomaly.neural",
     # ── Robust deployment detectors ──────────────────────────────────────────
-    "LocalPatchDetector":            "ember.anomaly.detectors",
-    "BandDeviationDetector":         "ember.anomaly.detectors",
-    "fit_detector_suite":            "ember.anomaly.detectors",
-    "score_detector_suite":          "ember.anomaly.detectors",
-    "make_recon_gate":               "ember.anomaly.detectors",
+    "LocalPatchDetector": "ember.anomaly.detectors",
+    "BandDeviationDetector": "ember.anomaly.detectors",
+    "fit_detector_suite": "ember.anomaly.detectors",
+    "score_detector_suite": "ember.anomaly.detectors",
+    "make_recon_gate": "ember.anomaly.detectors",
     # ── PatchCore ─────────────────────────────────────────────────────────────
-    "PatchCoreDetector":             "ember.anomaly.patchcore",
+    "PatchCoreDetector": "ember.anomaly.patchcore",
     # ── β-VAE ─────────────────────────────────────────────────────────────────
-    "SpectrogramVAE":                "ember.anomaly.neural",
-    "train_vae":                     "ember.anomaly.neural",
-    "score_vae":                     "ember.anomaly.neural",
+    "SpectrogramVAE": "ember.anomaly.neural",
+    "train_vae": "ember.anomaly.neural",
+    "score_vae": "ember.anomaly.neural",
     # ── Calibration-based ensemble ────────────────────────────────────────────
-    "rank_normalise":                "ember.anomaly.ensemble",
-    "optimise_ensemble_weights":     "ember.anomaly.ensemble",
-    "greedy_cascade_detection":      "ember.anomaly.ensemble",
+    "rank_normalise": "ember.anomaly.ensemble",
+    "optimise_ensemble_weights": "ember.anomaly.ensemble",
+    "greedy_cascade_detection": "ember.anomaly.ensemble",
     # ── Production pipeline ───────────────────────────────────────────────────
-    "run_robust_anomaly_pipeline":   "ember.anomaly.pipeline",
-    "predict":                       "ember.anomaly.pipeline",
+    "run_robust_anomaly_pipeline": "ember.anomaly.pipeline",
+    "predict": "ember.anomaly.pipeline",
     # ── Publication plots ─────────────────────────────────────────────────────
-    "plot_score_distributions":      "ember.anomaly.plotting",
-    "plot_roc_with_operating_points":"ember.anomaly.plotting",
-    "plot_spectrogram_grid":         "ember.anomaly.plotting",
-    "plot_detector_heatmap":         "ember.anomaly.plotting",
-    "plot_fp_cluster_timeseries":    "ember.anomaly.plotting",
-    "plot_weight_bar":               "ember.anomaly.plotting",
+    "plot_score_distributions": "ember.anomaly.plotting",
+    "plot_roc_with_operating_points": "ember.anomaly.plotting",
+    "plot_spectrogram_grid": "ember.anomaly.plotting",
+    "plot_detector_heatmap": "ember.anomaly.plotting",
+    "plot_fp_cluster_timeseries": "ember.anomaly.plotting",
+    "plot_weight_bar": "ember.anomaly.plotting",
 }
 
 __all__ = sorted(_NAME_TO_MODULE)

@@ -203,7 +203,7 @@ python scripts/create_spectrograms_dvac.py data/psp_fld_l2_dfb_dbm_dvac_20200925
 # Generate spectrograms from VAC data
 python scripts/create_spectrograms_vac.py data/psp_fld_l2_dfb_dbm_vac_2021080818_v02.cdf --output output/vac/
 ```
- 
+
 ```bash
 # Anomaly Detectiion Demo
 python scripts/anomaly_api_demo.py ../batch4log_spec_coupledwaves.pkl --quick

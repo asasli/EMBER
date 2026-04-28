@@ -55,7 +55,9 @@ def load_voltage_bursts(
     if kind == "dvac":
         var_name = f"psp_fld_l2_dfb_dbm_dvac{probes}"
         bursts = np.array(data.varget(var_name))
-        time_tt2000 = np.array(data.varget("psp_fld_l2_dfb_dbm_dvac_time_series_TT2000"))
+        time_tt2000 = np.array(
+            data.varget("psp_fld_l2_dfb_dbm_dvac_time_series_TT2000")
+        )
     elif kind == "vac":
         if probes == "12":
             vac_a = np.array(data.varget("psp_fld_l2_dfb_dbm_vac1"))
@@ -175,7 +177,9 @@ def save_spectrogram_record(
 
     if fmt in ("png", "both"):
         fig, ax = plt.subplots(figsize=(20, 10))
-        plot_spectrogram(record, ax=ax, cmap=cmap, title=f"{record.name} — {record.timestamp}")
+        plot_spectrogram(
+            record, ax=ax, cmap=cmap, title=f"{record.name} — {record.timestamp}"
+        )
         fig.savefig(base.with_suffix(".png"), dpi=150, bbox_inches="tight")
         plt.close(fig)
         saved_paths.append(base.with_suffix(".png"))
@@ -216,7 +220,9 @@ def create_dvac_spectrograms(
 ) -> list[Path]:
     """Save spectrograms for a DVAC CDF file."""
 
-    return create_spectrograms(cdf_path, output_dir, kind="dvac", probes=probes, fmt=fmt)
+    return create_spectrograms(
+        cdf_path, output_dir, kind="dvac", probes=probes, fmt=fmt
+    )
 
 
 def create_vac_spectrograms(

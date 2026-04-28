@@ -67,7 +67,11 @@ def test_train_autoencoder_rejects_invalid_early_stopping_args() -> None:
     specs = [np.zeros((4, 4), dtype=np.float32) for _ in range(3)]
 
     with pytest.raises(ValueError, match="validation_fraction"):
-        neural.train_autoencoder(specs, epochs=1, validation_fraction=1.0, verbose=False)
+        neural.train_autoencoder(
+            specs, epochs=1, validation_fraction=1.0, verbose=False
+        )
 
     with pytest.raises(ValueError, match="early_stopping_patience"):
-        neural.train_autoencoder(specs, epochs=1, early_stopping_patience=0, verbose=False)
+        neural.train_autoencoder(
+            specs, epochs=1, early_stopping_patience=0, verbose=False
+        )

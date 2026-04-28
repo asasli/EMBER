@@ -17,6 +17,7 @@ from scipy.ndimage import uniform_filter, zoom
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _missing_sklearn() -> ImportError:
     return ImportError(
         "EMBER anomaly detectors require scikit-learn. "
@@ -33,9 +34,7 @@ def _robust_patch_normalize(spec: np.ndarray) -> np.ndarray:
     return (s - center) / scale
 
 
-def _resize_spec(
-    spec: np.ndarray, target_h: int, target_w: int
-) -> np.ndarray:
+def _resize_spec(spec: np.ndarray, target_h: int, target_w: int) -> np.ndarray:
     """Bilinear resize to ``(target_h, target_w)``."""
     s = np.asarray(spec, dtype=np.float64)
     zf = (target_h / max(1, s.shape[0]), target_w / max(1, s.shape[1]))
@@ -45,6 +44,7 @@ def _resize_spec(
 # ---------------------------------------------------------------------------
 # LocalPatchDetector
 # ---------------------------------------------------------------------------
+
 
 class LocalPatchDetector:
     """Local patch z-score detector (matches the batch5 notebook).
@@ -124,6 +124,7 @@ class LocalPatchDetector:
 # BandDeviationDetector
 # ---------------------------------------------------------------------------
 
+
 class BandDeviationDetector:
     """Per-band temporal deviation detector.
 
@@ -142,9 +143,7 @@ class BandDeviationDetector:
         self._band_mean: np.ndarray | None = None
         self._band_std: np.ndarray | None = None
 
-    def _band_profiles(
-        self, specs: Sequence[np.ndarray]
-    ) -> np.ndarray:
+    def _band_profiles(self, specs: Sequence[np.ndarray]) -> np.ndarray:
         """Return (N, n_bands, T_min) temporal profiles per band."""
         T_min = min(np.asarray(s).shape[1] for s in specs)
         profiles = []
@@ -152,16 +151,16 @@ class BandDeviationDetector:
             arr = np.asarray(s, dtype=np.float32)
             H = arr.shape[0]
             edges = np.linspace(0, H, self.n_bands + 1, dtype=int)
-            row = np.array([
-                arr[edges[b]:edges[b + 1], :T_min].mean(axis=0)
-                for b in range(self.n_bands)
-            ])
+            row = np.array(
+                [
+                    arr[edges[b] : edges[b + 1], :T_min].mean(axis=0)
+                    for b in range(self.n_bands)
+                ]
+            )
             profiles.append(row)
         return np.array(profiles)  # (N, n_bands, T_min)
 
-    def fit(
-        self, specs: Sequence[np.ndarray]
-    ) -> "BandDeviationDetector":
+    def fit(self, specs: Sequence[np.ndarray]) -> "BandDeviationDetector":
         """Estimate per-band mean and std from background training data."""
         profiles = self._band_profiles(specs)  # (N, n_bands, T)
         self._band_mean = profiles.mean(axis=0)  # (n_bands, T)
@@ -191,10 +190,16 @@ class BandDeviationDetector:
 #   LP_Micro: resize to 32x64,   sliding 3x6  window
 _DEFAULT_LP_CONFIGS: dict[str, dict] = {
     "LP_Small": {
-        "win_h": 12, "win_w": 24, "target_h": 128, "target_w": 256,
+        "win_h": 12,
+        "win_w": 24,
+        "target_h": 128,
+        "target_w": 256,
     },
     "LP_Micro": {
-        "win_h": 3, "win_w": 6, "target_h": 32, "target_w": 64,
+        "win_h": 3,
+        "win_w": 6,
+        "target_h": 32,
+        "target_w": 64,
     },
 }
 
@@ -267,11 +272,10 @@ def fit_detector_suite(
     sf = max(sf, 0.6)
 
     try:
-        mahal = MinCovDet(
-            support_fraction=sf, random_state=seed
-        ).fit(Xp)
+        mahal = MinCovDet(support_fraction=sf, random_state=seed).fit(Xp)
     except Exception:
         from sklearn.covariance import EmpiricalCovariance
+
         mahal = EmpiricalCovariance().fit(Xp)
 
     iforest = IsolationForest(
@@ -366,9 +370,7 @@ def score_detector_suite(
     dists, _ = det["KNNDist"].kneighbors(Xp)
     scores["KNNDist"] = dists.mean(axis=1)
 
-    Xs_hat = suite["pca_recon"].inverse_transform(
-        suite["pca_recon"].transform(Xs)
-    )
+    Xs_hat = suite["pca_recon"].inverse_transform(suite["pca_recon"].transform(Xs))
     scores["PCARecon"] = np.mean((Xs - Xs_hat) ** 2, axis=1)
 
     for name, lpd in suite["lp_detectors"].items():

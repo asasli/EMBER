@@ -12,17 +12,31 @@ def _download_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Download PSP FIELDS DBM burst data from NASA CDAWeb."
     )
-    parser.add_argument("--kind", required=True, choices=["dvac", "vac"], help="Data product type")
-    parser.add_argument("--output", "-o", default="data", help="Output directory (default: data)")
+    parser.add_argument(
+        "--kind", required=True, choices=["dvac", "vac"], help="Data product type"
+    )
+    parser.add_argument(
+        "--output", "-o", default="data", help="Output directory (default: data)"
+    )
 
     single = parser.add_argument_group("single file")
     single.add_argument("--date", type=str, help="Date to download (YYYY-MM-DD)")
-    single.add_argument("--hour", type=str, choices=HOURS, help="6-hour block to download")
-    single.add_argument("--all-hours", action="store_true", help="Download all 6-hour blocks for the given date")
+    single.add_argument(
+        "--hour", type=str, choices=HOURS, help="6-hour block to download"
+    )
+    single.add_argument(
+        "--all-hours",
+        action="store_true",
+        help="Download all 6-hour blocks for the given date",
+    )
 
     range_group = parser.add_argument_group("date range")
-    range_group.add_argument("--start", type=str, help="Start date for range download (YYYY-MM-DD)")
-    range_group.add_argument("--end", type=str, help="End date for range download (YYYY-MM-DD)")
+    range_group.add_argument(
+        "--start", type=str, help="Start date for range download (YYYY-MM-DD)"
+    )
+    range_group.add_argument(
+        "--end", type=str, help="End date for range download (YYYY-MM-DD)"
+    )
     return parser
 
 
@@ -128,7 +142,9 @@ def _anomaly_parser() -> argparse.ArgumentParser:
         metavar="DIR",
         help="Directory for CSV summaries and PNG plots (default: ./robust_ad_results)",
     )
-    parser.add_argument("--seed", type=int, default=42, help="Random seed (default: 42)")
+    parser.add_argument(
+        "--seed", type=int, default=42, help="Random seed (default: 42)"
+    )
     parser.add_argument("--quiet", action="store_true", help="Suppress progress output")
     return parser
 
@@ -150,6 +166,7 @@ def main_anomaly() -> None:
     else:
         import pandas as pd
         from ember.anomaly.pipeline import prepare_anomaly_dataset
+
         if not isinstance(data, pd.DataFrame):
             raise ValueError(
                 f"Expected a DataFrame or AnomalyDataset in {args.dataset!r}, "
@@ -158,6 +175,7 @@ def main_anomaly() -> None:
         dataset = prepare_anomaly_dataset(data)
 
     from ember.anomaly.pipeline import run_robust_anomaly_pipeline
+
     results = run_robust_anomaly_pipeline(
         dataset,
         target_far=args.target_far,

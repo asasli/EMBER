@@ -86,7 +86,9 @@ def prepare_embedding_spectrograms(
 ) -> PreparedSpectrogramBank:
     """Alias for :func:`prepare_multimodel_spectrograms`."""
 
-    return prepare_multimodel_spectrograms(specs_list, noise_indices=noise_indices, h=h, w=w)
+    return prepare_multimodel_spectrograms(
+        specs_list, noise_indices=noise_indices, h=h, w=w
+    )
 
 
 class MultiModelExtractor:
@@ -115,7 +117,11 @@ class MultiModelExtractor:
         return list(self.models)
 
     def _load_requested_models(self) -> None:
-        unknown = [name for name in self.requested_model_names if name not in BACKBONE_INPUT_SIZES]
+        unknown = [
+            name
+            for name in self.requested_model_names
+            if name not in BACKBONE_INPUT_SIZES
+        ]
         if unknown:
             raise ValueError(f"Unknown backbone(s): {unknown}")
 
@@ -126,7 +132,9 @@ class MultiModelExtractor:
                 self.load_errors[model_name] = f"{type(exc).__name__}: {exc}"
 
         if self.strict and self.load_errors:
-            missing = ", ".join(f"{name} [{msg}]" for name, msg in self.load_errors.items())
+            missing = ", ".join(
+                f"{name} [{msg}]" for name, msg in self.load_errors.items()
+            )
             raise RuntimeError(f"Failed to load requested backbone(s): {missing}")
 
         if self.verbose:
@@ -167,7 +175,11 @@ class MultiModelExtractor:
                 if model_name == "convnext"
                 else "vit_small_patch14_dinov2.lvd142m"
             )
-            return timm.create_model(model_id, pretrained=True, num_classes=0).eval().to(self.device)
+            return (
+                timm.create_model(model_id, pretrained=True, num_classes=0)
+                .eval()
+                .to(self.device)
+            )
 
         if model_name == "clip":
             try:
@@ -178,7 +190,9 @@ class MultiModelExtractor:
                     "Install `pip install -e .[anomaly-notebook]`."
                 ) from exc
 
-            model, _, _ = open_clip.create_model_and_transforms("ViT-B-32", pretrained="openai")
+            model, _, _ = open_clip.create_model_and_transforms(
+                "ViT-B-32", pretrained="openai"
+            )
             return model.visual.eval().to(self.device)
 
         raise ValueError(f"Unsupported backbone: {model_name}")
@@ -190,17 +204,23 @@ class MultiModelExtractor:
         elif array.ndim == 3:
             array = array[:, np.newaxis, :, :]
         elif array.ndim != 4:
-            raise ValueError("Expected a spectrogram batch with shape (n, h, w) or (n, c, h, w).")
+            raise ValueError(
+                "Expected a spectrogram batch with shape (n, h, w) or (n, c, h, w)."
+            )
 
         tensor = torch.tensor(array, dtype=torch.float32)
         target_h, target_w = BACKBONE_INPUT_SIZES[model_name]
         if tensor.shape[-2:] != (target_h, target_w):
-            tensor = F.interpolate(tensor, size=(target_h, target_w), mode="bilinear", align_corners=False)
+            tensor = F.interpolate(
+                tensor, size=(target_h, target_w), mode="bilinear", align_corners=False
+            )
 
         if tensor.shape[1] == 1:
             tensor = tensor.repeat(1, 3, 1, 1)
         elif tensor.shape[1] != 3:
-            raise ValueError("Expected 1 or 3 channels for the prepared spectrogram bank.")
+            raise ValueError(
+                "Expected 1 or 3 channels for the prepared spectrogram bank."
+            )
 
         tensor = (tensor - tensor.mean()) / (tensor.std() + 1e-6)
         tensor = tensor * 0.2 + 0.5
@@ -210,7 +230,9 @@ class MultiModelExtractor:
         return ((tensor - mean) / std).to(self.device)
 
     @staticmethod
-    def _pool_output(output: torch.Tensor | np.ndarray | Mapping[str, object] | Sequence[object]) -> torch.Tensor:
+    def _pool_output(
+        output: torch.Tensor | np.ndarray | Mapping[str, object] | Sequence[object],
+    ) -> torch.Tensor:
         if isinstance(output, Mapping):
             for key in (
                 "pooler_output",
@@ -252,7 +274,9 @@ class MultiModelExtractor:
     ) -> dict[str, np.ndarray]:
         """Extract features for every loaded backbone over the provided bank."""
 
-        requested = list(model_names) if model_names is not None else self.loaded_model_names
+        requested = (
+            list(model_names) if model_names is not None else self.loaded_model_names
+        )
         if not requested:
             if self.load_errors:
                 raise RuntimeError(f"No backbones are available: {self.load_errors}")

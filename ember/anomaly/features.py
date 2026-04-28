@@ -105,8 +105,12 @@ def extract_physics_features(
 
     temporal_mean = spec.mean(axis=0)
     temporal_std = spec.std(axis=0)
-    temporal_diff = np.diff(temporal_mean) if n_time > 1 else np.zeros(1, dtype=np.float64)
-    linear_trend = float(np.polyfit(np.arange(n_time), temporal_mean, 1)[0]) if n_time > 1 else 0.0
+    temporal_diff = (
+        np.diff(temporal_mean) if n_time > 1 else np.zeros(1, dtype=np.float64)
+    )
+    linear_trend = (
+        float(np.polyfit(np.arange(n_time), temporal_mean, 1)[0]) if n_time > 1 else 0.0
+    )
     feats.extend(
         [
             float(temporal_mean.std()),
@@ -124,12 +128,18 @@ def extract_physics_features(
     freq_bins = np.arange(n_freq)
     centroid = float(np.sum(freq_bins * freq_profile_norm))
     bandwidth = float(np.sqrt(np.sum((freq_bins - centroid) ** 2 * freq_profile_norm)))
-    feats.extend([float(spectral_entropy), centroid / max(n_freq, 1), bandwidth / max(n_freq, 1)])
+    feats.extend(
+        [float(spectral_entropy), centroid / max(n_freq, 1), bandwidth / max(n_freq, 1)]
+    )
 
     peak_freq_per_time = spec.argmax(axis=0).astype(float)
-    peak_diff = np.diff(peak_freq_per_time) if n_time > 1 else np.zeros(1, dtype=np.float64)
+    peak_diff = (
+        np.diff(peak_freq_per_time) if n_time > 1 else np.zeros(1, dtype=np.float64)
+    )
     if n_time > 1:
-        peak_auto = float(np.corrcoef(peak_freq_per_time[:-1], peak_freq_per_time[1:])[0, 1])
+        peak_auto = float(
+            np.corrcoef(peak_freq_per_time[:-1], peak_freq_per_time[1:])[0, 1]
+        )
     else:
         peak_auto = 0.0
     feats.extend(
@@ -168,7 +178,9 @@ def extract_physics_features(
         ]
     )
 
-    return np.nan_to_num(np.asarray(feats, dtype=np.float32), nan=0.0, posinf=0.0, neginf=0.0)
+    return np.nan_to_num(
+        np.asarray(feats, dtype=np.float32), nan=0.0, posinf=0.0, neginf=0.0
+    )
 
 
 def extract_physics_feature_matrix(
@@ -178,7 +190,10 @@ def extract_physics_feature_matrix(
 ) -> np.ndarray:
     """Vectorize the physics feature extraction across many spectrograms."""
 
-    return np.asarray([extract_physics_features(spec, n_bands=n_bands) for spec in specs], dtype=np.float32)
+    return np.asarray(
+        [extract_physics_features(spec, n_bands=n_bands) for spec in specs],
+        dtype=np.float32,
+    )
 
 
 def extract_coupling_features(
@@ -226,7 +241,9 @@ def extract_coupling_features(
     except Exception:
         feats.extend([0.0, 0.0])
 
-    return np.nan_to_num(np.asarray(feats, dtype=np.float32), nan=0.0, posinf=0.0, neginf=0.0)
+    return np.nan_to_num(
+        np.asarray(feats, dtype=np.float32), nan=0.0, posinf=0.0, neginf=0.0
+    )
 
 
 def extract_coupling_feature_matrix(
@@ -265,7 +282,9 @@ def choose_coupling_channel(
 
     ref_shape = reference_specs[0].shape
     if channel_columns is None:
-        channel_columns = [col for col in df.columns if col not in {label_column, spec_column}]
+        channel_columns = [
+            col for col in df.columns if col not in {label_column, spec_column}
+        ]
 
     for column in channel_columns:
         try:
@@ -305,7 +324,9 @@ class PhysicsAugmenter:
 
         if rng.random() < 0.7:
             noise_level = rng.uniform(0.02, 0.08) * max(float(augmented.std()), 1e-6)
-            augmented = augmented + rng.normal(0, noise_level, augmented.shape).astype(np.float32)
+            augmented = augmented + rng.normal(0, noise_level, augmented.shape).astype(
+                np.float32
+            )
 
         if rng.random() < 0.5:
             augmented = np.roll(augmented, rng.integers(-8, 9), axis=0)
@@ -317,7 +338,9 @@ class PhysicsAugmenter:
             augmented = gaussian_filter(augmented, sigma=rng.uniform(0.3, 1.0))
 
         if all_noise_specs is not None and rng.random() < 0.25:
-            partner = np.asarray(all_noise_specs[rng.integers(len(all_noise_specs))], dtype=np.float32)
+            partner = np.asarray(
+                all_noise_specs[rng.integers(len(all_noise_specs))], dtype=np.float32
+            )
             augmented, partner = align_spectrogram_pair(augmented, partner)
             lam = rng.beta(0.5, 0.5)
             augmented = lam * augmented + (1.0 - lam) * partner
@@ -361,7 +384,9 @@ class PhysicsAugmenter:
                 )
                 augmented_specs.append(augmented)
                 sources.append(int(orig_idx))
-                augmented_features.append(extract_physics_features(augmented, n_bands=n_bands))
+                augmented_features.append(
+                    extract_physics_features(augmented, n_bands=n_bands)
+                )
 
         return (
             np.stack(augmented_specs),

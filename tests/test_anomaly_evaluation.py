@@ -30,8 +30,12 @@ def _toy_scores():
 def test_threshold_helpers() -> None:
     all_methods, noise_idx, _, _ = _toy_scores()
 
-    threshold, idx = threshold_detections(all_methods["Detector-A"], noise_idx, fpr=0.01)
-    zero_fp_threshold, zero_fp_idx = threshold_zero_fp(all_methods["Detector-A"], noise_idx)
+    threshold, idx = threshold_detections(
+        all_methods["Detector-A"], noise_idx, fpr=0.01
+    )
+    zero_fp_threshold, zero_fp_idx = threshold_zero_fp(
+        all_methods["Detector-A"], noise_idx
+    )
 
     assert threshold > 0.29
     assert idx.tolist() == [2, 3, 4]
@@ -55,7 +59,9 @@ def test_budgeted_case_and_scores() -> None:
     assert case["union_fp"] == [2]
     assert list(case["votes_df"]["sample_idx"]) == [3, 4]
 
-    vote_score, soft_score, detection_map = build_case_scores(case, all_methods, noise_idx)
+    vote_score, soft_score, detection_map = build_case_scores(
+        case, all_methods, noise_idx
+    )
     assert vote_score.tolist() == [0.0, 0.0, 1.0, 2.0, 2.0]
     assert soft_score.shape == (5,)
     assert detection_map["Detector-B"] == [3, 4]

@@ -8,12 +8,17 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import numpy as np
 import pandas as pd
+
 try:
     import seaborn as sns
 except ImportError:  # pragma: no cover - optional styling dependency
     sns = None
 
-from ember.datasets import extract_label_examples, load_labeled_spectrogram_dataframe, spectrogram_from_row
+from ember.datasets import (
+    extract_label_examples,
+    load_labeled_spectrogram_dataframe,
+    spectrogram_from_row,
+)
 
 
 LABEL_TITLES = {
@@ -59,7 +64,9 @@ def plot_three_class_examples(
     fig, axes = plt.subplots(1, len(examples), figsize=(15, 4), constrained_layout=True)
     for ax, (label, row) in zip(axes, examples):
         ax.imshow(spectrogram_from_row(row), aspect="auto", origin="lower", cmap=cmap)
-        ax.set_title(LABEL_TITLES.get(label, f"Label {label}"), fontsize=12, fontweight="bold")
+        ax.set_title(
+            LABEL_TITLES.get(label, f"Label {label}"), fontsize=12, fontweight="bold"
+        )
         ax.set_xlabel("Time Bins")
         ax.set_ylabel("Log Frequency Bins")
         _t = row.get("Time (UTC)", None)
@@ -75,7 +82,9 @@ def plot_three_class_examples(
             va="bottom",
             bbox={"facecolor": "black", "alpha": 0.45, "pad": 3},
         )
-    fig.suptitle("Representative PSP spectrogram examples", fontsize=16, fontweight="bold")
+    fig.suptitle(
+        "Representative PSP spectrogram examples", fontsize=16, fontweight="bold"
+    )
     if output_path is not None:
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -90,7 +99,9 @@ def plot_case_recovery_summary(
 ):
     """Plot the recovered anomalies by detector-combination case."""
 
-    df = case_summary_df.sort_values(["recovered", "coverage"], ascending=[True, True]).copy()
+    df = case_summary_df.sort_values(
+        ["recovered", "coverage"], ascending=[True, True]
+    ).copy()
     fig, ax = plt.subplots(figsize=(10, 4.8), constrained_layout=True)
     if sns is not None:
         palette = sns.color_palette("crest", n_colors=len(df))
@@ -137,10 +148,14 @@ def build_detection_matrix(
                     seen.append(method)
         method_order = seen
 
-    matrix = pd.DataFrame(0, index=method_order, columns=votes_df["sample_idx"].tolist(), dtype=int)
+    matrix = pd.DataFrame(
+        0, index=method_order, columns=votes_df["sample_idx"].tolist(), dtype=int
+    )
     for _, row in votes_df.iterrows():
         sample_idx = row["sample_idx"]
-        for method in [part.strip() for part in row["methods"].split(",") if part.strip()]:
+        for method in [
+            part.strip() for part in row["methods"].split(",") if part.strip()
+        ]:
             if method in matrix.index:
                 matrix.loc[method, sample_idx] = 1
     return matrix
@@ -167,7 +182,11 @@ def plot_detection_map(
             ax=ax,
         )
     else:
-        ax.imshow(matrix.to_numpy(dtype=float), aspect="auto", cmap=ListedColormap(["#f8fafc", "#115e59"]))
+        ax.imshow(
+            matrix.to_numpy(dtype=float),
+            aspect="auto",
+            cmap=ListedColormap(["#f8fafc", "#115e59"]),
+        )
         ax.set_xticks(np.arange(matrix.shape[1]))
         ax.set_xticklabels(matrix.columns.tolist())
         ax.set_yticks(np.arange(matrix.shape[0]))
@@ -254,7 +273,9 @@ def plot_feature_discrimination(
     ax.barh(top_df["feature_name"], top_df["effect_size"], color=colors, alpha=0.85)
     ax.set_xlabel("Effect Size (|rank-biserial correlation|)")
     ax.set_ylabel("")
-    ax.set_title(f"Top {min(top_k, len(summary_df))} Physics Features", fontweight="bold")
+    ax.set_title(
+        f"Top {min(top_k, len(summary_df))} Physics Features", fontweight="bold"
+    )
 
     if output_path is not None:
         output_path = Path(output_path)
@@ -289,7 +310,9 @@ def save_repo_figures(
     plt.close("all")
     plot_case_recovery_summary(case_summary_df, output_path=recovery_path)
     plt.close("all")
-    plot_detection_map(votes_df, method_order=method_order, output_path=detection_map_path)
+    plot_detection_map(
+        votes_df, method_order=method_order, output_path=detection_map_path
+    )
     plt.close("all")
 
     return {

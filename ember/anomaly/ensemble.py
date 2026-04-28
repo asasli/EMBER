@@ -7,7 +7,9 @@ import numpy as np
 
 
 def _as_score_arrays(scores_dict: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
-    return {name: np.asarray(scores, dtype=float) for name, scores in scores_dict.items()}
+    return {
+        name: np.asarray(scores, dtype=float) for name, scores in scores_dict.items()
+    }
 
 
 def _normalize_against_reference(
@@ -21,7 +23,9 @@ def _normalize_against_reference(
 
 
 def _loo_rank(reference_scores: np.ndarray, test_score: float) -> float:
-    combined = np.concatenate([np.asarray(reference_scores, dtype=float), [float(test_score)]])
+    combined = np.concatenate(
+        [np.asarray(reference_scores, dtype=float), [float(test_score)]]
+    )
     return float(rankdata(combined, method="average")[-1] / max(len(combined), 1))
 
 
@@ -42,7 +46,9 @@ def norm(scores: np.ndarray) -> np.ndarray:
 def ens_rank(scores_dict: dict[str, np.ndarray]) -> np.ndarray:
     """Rank-based ensemble over a mapping of detector scores."""
 
-    ranked = np.column_stack([rankdata(np.asarray(scores)) for scores in scores_dict.values()])
+    ranked = np.column_stack(
+        [rankdata(np.asarray(scores)) for scores in scores_dict.values()]
+    )
     return ranked.mean(axis=1)
 
 
@@ -58,8 +64,7 @@ def ens_rank_loo(scores_dict: dict[str, np.ndarray]) -> np.ndarray:
         mask = np.ones(n_samples, dtype=bool)
         mask[i] = False
         fold_ranks = [
-            _loo_rank(scores_dict[key][mask], scores_dict[key][i])
-            for key in keys
+            _loo_rank(scores_dict[key][mask], scores_dict[key][i]) for key in keys
         ]
         output[i] = float(np.mean(fold_ranks)) if fold_ranks else 0.0
 
@@ -69,7 +74,9 @@ def ens_rank_loo(scores_dict: dict[str, np.ndarray]) -> np.ndarray:
 def ens_mean(scores_dict: dict[str, np.ndarray]) -> np.ndarray:
     """Mean ensemble after min-max normalization."""
 
-    normalized = np.column_stack([norm01(np.asarray(scores)) for scores in scores_dict.values()])
+    normalized = np.column_stack(
+        [norm01(np.asarray(scores)) for scores in scores_dict.values()]
+    )
     return normalized.mean(axis=1)
 
 
@@ -85,7 +92,11 @@ def ens_mean_loo(scores_dict: dict[str, np.ndarray]) -> np.ndarray:
         mask = np.ones(n_samples, dtype=bool)
         mask[i] = False
         fold_scores = [
-            float(_normalize_against_reference(scores_dict[key][mask], scores_dict[key][i]))
+            float(
+                _normalize_against_reference(
+                    scores_dict[key][mask], scores_dict[key][i]
+                )
+            )
             for key in keys
         ]
         output[i] = float(np.mean(fold_scores)) if fold_scores else 0.0
@@ -165,7 +176,11 @@ def ens_weighted_loo(
 
         fold_scores = np.asarray(
             [
-                float(_normalize_against_reference(scores_dict[key][mask], scores_dict[key][i]))
+                float(
+                    _normalize_against_reference(
+                        scores_dict[key][mask], scores_dict[key][i]
+                    )
+                )
                 for key in keys
             ],
             dtype=float,
@@ -257,7 +272,11 @@ def ens_topk_loo(
         if selected:
             fold_scores = np.asarray(
                 [
-                    float(_normalize_against_reference(scores_dict[name][mask], scores_dict[name][i]))
+                    float(
+                        _normalize_against_reference(
+                            scores_dict[name][mask], scores_dict[name][i]
+                        )
+                    )
                     for name in selected
                 ],
                 dtype=float,
@@ -300,7 +319,9 @@ def score_lightgbm_meta_learner(
 
     labels = np.asarray(labels, dtype=int)
     score_arrays = _as_score_arrays(scores_dict)
-    feature_order = list(feature_order) if feature_order is not None else sorted(score_arrays)
+    feature_order = (
+        list(feature_order) if feature_order is not None else sorted(score_arrays)
+    )
     meta_x_raw = np.column_stack([score_arrays[name] for name in feature_order])
     if normalize and not strict:
         meta_x_global = np.column_stack(
@@ -380,7 +401,7 @@ def rank_normalise(
         Rank-normalised scores in [0, 1].
     """
     bg = np.sort(np.asarray(bg_cal_scores, dtype=np.float64))
-    q  = np.asarray(query_scores, dtype=np.float64)
+    q = np.asarray(query_scores, dtype=np.float64)
     return np.searchsorted(bg, q, side="left").astype(np.float64) / max(len(bg), 1)
 
 
@@ -430,15 +451,15 @@ def optimise_ensemble_weights(
             "Install with `pip install scipy`."
         ) from exc
 
-    X_cal  = np.asarray(norm_scores_bg_cal, dtype=np.float64)
-    X_eval = np.asarray(norm_scores_eval,   dtype=np.float64)
-    y      = np.asarray(labels_binary,       dtype=int)
+    X_cal = np.asarray(norm_scores_bg_cal, dtype=np.float64)
+    X_eval = np.asarray(norm_scores_eval, dtype=np.float64)
+    y = np.asarray(labels_binary, dtype=int)
 
-    n_det       = X_cal.shape[1]
+    n_det = X_cal.shape[1]
     bg_eval_idx = np.where(y == 0)[0]
     an_eval_idx = np.where(y == 1)[0]
-    n_bg_eval   = len(bg_eval_idx)
-    max_fp      = int(np.floor(target_far * n_bg_eval))
+    n_bg_eval = len(bg_eval_idx)
+    max_fp = int(np.floor(target_far * n_bg_eval))
 
     def _neg_tpr(w):
         w = np.asarray(w, dtype=np.float64)
@@ -446,7 +467,7 @@ def optimise_ensemble_weights(
         w = w / (w.sum() + 1e-15)
 
         # threshold at target_far on bg_cal
-        cal_ens  = X_cal  @ w
+        cal_ens = X_cal @ w
         eval_ens = X_eval @ w
 
         bg_cal_sorted = np.sort(cal_ens)[::-1]
@@ -514,10 +535,10 @@ def greedy_cascade_detection(
     summary : dict
         ``{total_tp, total_fp, tpr, far}``.
     """
-    bg_idx   = np.asarray(bg_idx,   dtype=int)
+    bg_idx = np.asarray(bg_idx, dtype=int)
     anom_idx = np.asarray(anom_idx, dtype=int)
-    N_bg    = len(bg_idx)
-    N_anom  = len(anom_idx)
+    N_bg = len(bg_idx)
+    N_anom = len(anom_idx)
     global_budget = int(np.floor(target_far * N_bg))
 
     def _thr_and_tpr(name: str) -> tuple[float, float]:
@@ -530,11 +551,12 @@ def greedy_cascade_detection(
         return thr, tpr
 
     if order is None:
-        order = sorted(scores_dict.keys(),
-                       key=lambda n: _thr_and_tpr(n)[1], reverse=True)
+        order = sorted(
+            scores_dict.keys(), key=lambda n: _thr_and_tpr(n)[1], reverse=True
+        )
 
     # Boolean masks over bg_idx / anom_idx positions
-    flagged_bg   = np.zeros(N_bg,   dtype=bool)
+    flagged_bg = np.zeros(N_bg, dtype=bool)
     flagged_anom = np.zeros(N_anom, dtype=bool)
     union_fp = 0
     union_tp = 0
@@ -542,66 +564,71 @@ def greedy_cascade_detection(
 
     for det_name in order:
         scores = np.asarray(scores_dict[det_name], float)
-        bg_scores   = scores[bg_idx]
+        bg_scores = scores[bg_idx]
         anom_scores = scores[anom_idx]
 
         remaining = global_budget - union_fp
         if remaining <= 0:
-            steps.append({
-                "detector":          det_name,
-                "thr":               float("nan"),
-                "new_tp":            0,
-                "new_fp":            0,
-                "cumulative_tp":     union_tp,
-                "cumulative_fp":     union_fp,
-                "tpr":               union_tp / max(N_anom, 1),
-                "far":               union_fp / max(N_bg,   1),
-                "skipped":           True,
-                "detected_anom_mask": flagged_anom.copy(),
-            })
+            steps.append(
+                {
+                    "detector": det_name,
+                    "thr": float("nan"),
+                    "new_tp": 0,
+                    "new_fp": 0,
+                    "cumulative_tp": union_tp,
+                    "cumulative_fp": union_fp,
+                    "tpr": union_tp / max(N_anom, 1),
+                    "far": union_fp / max(N_bg, 1),
+                    "skipped": True,
+                    "detected_anom_mask": flagged_anom.copy(),
+                }
+            )
             continue
 
         # Threshold from UNFLAGGED background only
-        unflagged_bg_s  = bg_scores[~flagged_bg]
+        unflagged_bg_s = bg_scores[~flagged_bg]
         if len(unflagged_bg_s) == 0:
             unflagged_sorted = np.array([float("inf")])
         else:
             unflagged_sorted = np.sort(unflagged_bg_s)[::-1]
         k = remaining - 1  # allow at most `remaining` new FPs (0-indexed)
         thr = float(
-            unflagged_sorted[k] if k < len(unflagged_sorted)
+            unflagged_sorted[k]
+            if k < len(unflagged_sorted)
             else unflagged_sorted[-1] - 1e-9
         )
 
-        new_bg_mask   = (bg_scores   >= thr) & (~flagged_bg)
+        new_bg_mask = (bg_scores >= thr) & (~flagged_bg)
         new_anom_mask = (anom_scores >= thr) & (~flagged_anom)
         new_fp = int(new_bg_mask.sum())
         new_tp = int(new_anom_mask.sum())
 
-        flagged_bg   |= new_bg_mask
+        flagged_bg |= new_bg_mask
         flagged_anom |= new_anom_mask
         union_fp += new_fp
         union_tp += new_tp
 
-        steps.append({
-            "detector":           det_name,
-            "thr":                thr,
-            "new_tp":             new_tp,
-            "new_fp":             new_fp,
-            "cumulative_tp":      union_tp,
-            "cumulative_fp":      union_fp,
-            "tpr":                union_tp / max(N_anom, 1),
-            "far":                union_fp / max(N_bg,   1),
-            "skipped":            False,
-            "detected_anom_mask": flagged_anom.copy(),
-        })
+        steps.append(
+            {
+                "detector": det_name,
+                "thr": thr,
+                "new_tp": new_tp,
+                "new_fp": new_fp,
+                "cumulative_tp": union_tp,
+                "cumulative_fp": union_fp,
+                "tpr": union_tp / max(N_anom, 1),
+                "far": union_fp / max(N_bg, 1),
+                "skipped": False,
+                "detected_anom_mask": flagged_anom.copy(),
+            }
+        )
 
     summary = {
-        "total_tp":  union_tp,
-        "total_fp":  union_fp,
-        "tpr":       union_tp / max(N_anom, 1),
-        "far":       union_fp / max(N_bg,   1),
-        "order":     order,
+        "total_tp": union_tp,
+        "total_fp": union_fp,
+        "tpr": union_tp / max(N_anom, 1),
+        "far": union_fp / max(N_bg, 1),
+        "order": order,
     }
     return steps, summary
 
@@ -644,7 +671,9 @@ def compute_default_ensembles(
                 "mode": "full-data",
                 "k": int(k),
                 "most_common": list(selected_names),
-                "selection_counts": {name: int(name in selected_names) for name in scores_dict},
+                "selection_counts": {
+                    name: int(name in selected_names) for name in scores_dict
+                },
                 "selected_per_sample": [list(selected_names)] * len(labels),
             }
         ensembles[f"Ens-Top{k}"] = topk_scores

@@ -63,7 +63,9 @@ def test_feature_extractors_and_augmenter() -> None:
     assert np.isfinite(coupling).all()
 
     augmenter = PhysicsAugmenter(seed=7)
-    aug_specs, aug_sources, aug_features = augmenter.generate_all([spec, aux], [10, 11], n_per_sample=2)
+    aug_specs, aug_sources, aug_features = augmenter.generate_all(
+        [spec, aux], [10, 11], n_per_sample=2
+    )
 
     assert aug_specs.shape == (4, 4, 5)
     assert aug_sources.tolist() == [10, 10, 11, 11]
@@ -90,7 +92,9 @@ def test_coupling_feature_matrix_handles_mixed_heights() -> None:
 def test_prepare_multimodel_spectrograms() -> None:
     df = _make_dataframe()
     dataset = prepare_anomaly_dataset(df)
-    prepared = prepare_multimodel_spectrograms(dataset.specs_raw, noise_indices=dataset.noise_idx, h=16, w=12)
+    prepared = prepare_multimodel_spectrograms(
+        dataset.specs_raw, noise_indices=dataset.noise_idx, h=16, w=12
+    )
 
     assert prepared.specs.shape == (3, 16, 12)
     assert prepared.target_shape == (16, 12)

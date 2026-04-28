@@ -24,7 +24,9 @@ def test_notebook_signature_compatibility() -> None:
     without_labels = analyze_fpr(scores, noise_idx, signal_idx)
     assert with_labels == without_labels
 
-    with_orig = analyze_class(scores, labels_original, noise_idx, class1_idx, class2_idx)
+    with_orig = analyze_class(
+        scores, labels_original, noise_idx, class1_idx, class2_idx
+    )
     without_orig = analyze_class(scores, noise_idx, class1_idx, class2_idx)
     assert with_orig["tpr_c1"] == without_orig["tpr_c1"]
     assert with_orig["tpr_c2"] == without_orig["tpr_c2"]
