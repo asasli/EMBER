@@ -1,6 +1,14 @@
 # EMBER
 
-ML for Core Electron Heating due to Wave Modulation in the Solar Wind
+**E**lectron heating from **M**odulated **B**urst-mode **E**vent **R**ecognition
+
+An open-source machine-learning pipeline for detecting modulated ion acoustic waves (IAWs) — including triggered IAWs (TIAWs) and frequency-dispersed IAWs (FDIAWs) — in Parker Solar Probe (PSP) FIELDS burst-mode data, and linking them to core-electron heating in the inner heliosphere.
+
+📄 **Paper:** [arXiv:2605.00162](https://arxiv.org/abs/2605.00162) — Sasli et al., 2026
+
+---
+
+
 
 ## Overview
 
@@ -211,3 +219,24 @@ python scripts/anomaly_api_demo.py ../batch4log_spec_coupledwaves.pkl --quick
 # Full strict anomaly study bundle for paper-style outputs
 python scripts/run_anomaly_paper_study.py ../batch4log_spec_coupledwaves.pkl --output-dir artifacts/batch4_paper_bundle
 ```
+
+## Citation
+
+If you use this code or any part of this work, please cite the arXiv paper:
+
+```bibtex
+@article{sasli2026ember,
+  title   = {EMBER: Machine-Learning Detection of Modulated Ion Acoustic Waves
+             and Associated Core-Electron Heating in the Solar Wind
+             with Parker Solar Probe},
+  author  = {Sasli, Argyro and <co-author 2> and <co-author 3> and <co-author 4>},
+  journal = {arXiv preprint arXiv:2605.00162},
+  year    = {2026},
+  url     = {https://arxiv.org/abs/2605.00162}
+}
+```
+
+Plain-text reference:
+
+> Sasli, A., et al. (2026). *EMBER: Machine-Learning Detection of Modulated Ion Acoustic Waves and Associated Core-Electron Heating in the Solar Wind with Parker Solar Probe.* arXiv:2605.00162.
+
