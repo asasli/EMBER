@@ -239,4 +239,3 @@ If you use this code or any part of this work, please cite the arXiv paper:
 Plain-text reference:
 
 > Sasli, A., et al. (2026). *EMBER: Machine-Learning Detection of Modulated Ion Acoustic Waves and Associated Core-Electron Heating in the Solar Wind with Parker Solar Probe.* arXiv:2605.00162.
-
