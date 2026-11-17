@@ -100,6 +100,18 @@ _NAME_TO_MODULE = {
     # ── Production pipeline ───────────────────────────────────────────────────
     "run_robust_anomaly_pipeline": "ember.anomaly.pipeline",
     "predict": "ember.anomaly.pipeline",
+    # ── v2 feature bank, label-free union, out-of-fold protocol (paper revision) ─
+    "narrowband_statistics": "ember.anomaly.narrowband",
+    "extract_feature_bank_v2": "ember.anomaly.narrowband",
+    "extract_feature_bank_v2_matrix": "ember.anomaly.narrowband",
+    "empirical_pvalues": "ember.anomaly.union",
+    "min_p_union": "ember.anomaly.union",
+    "threshold_at_far": "ember.anomaly.union",
+    "clopper_pearson": "ember.anomaly.union",
+    "recovery_at_far": "ember.anomaly.union",
+    "background_folds": "ember.anomaly.crossval",
+    "out_of_fold_scores": "ember.anomaly.crossval",
+    "OutOfFoldScores": "ember.anomaly.crossval",
     # ── Publication plots ─────────────────────────────────────────────────────
     "plot_score_distributions": "ember.anomaly.plotting",
     "plot_roc_with_operating_points": "ember.anomaly.plotting",
